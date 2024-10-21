@@ -21,7 +21,6 @@ interface AddEmailsRequestBody {
 
 const CLIENT_ID = process.env.SENDPULSE_CLIENT_ID;
 const CLIENT_SECRET = process.env.SENDPULSE_CLIENT_SECRET;
-const MAILING_LIST = process.env.SENDPULSE_MAILING_LIST_ID;
 const API_AUTH_KEY = process.env.API_AUTH_KEY;
 
 
@@ -73,7 +72,7 @@ export async function POST(request: NextRequest) {
     const requestBody: AddEmailsRequestBody = await request.json();
 
     // Extract data from the request body
-    const { emails } = requestBody;
+    const { emails, addressBookId } = requestBody;
 
     if ( !emails || emails.length === 0) {
       return NextResponse.json(
@@ -83,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Adjust the endpoint based on your requirements
-    const endpoint = `https://api.sendpulse.com/addressbooks/${MAILING_LIST}/emails`; // Replace with the actual endpoint
+    const endpoint = `https://api.sendpulse.com/addressbooks/${addressBookId}/emails`; // Replace with the actual endpoint
 
     // Make the API call to SendPulse using the access token
     const sendpulseResponse: AxiosResponse = await axios.post(
@@ -99,7 +98,7 @@ export async function POST(request: NextRequest) {
 
 
     if (sendpulseResponse.data.result) {
-      const unsubscribeEndpoint = `https://api.sendpulse.com/addressbooks/${MAILING_LIST}/emails/unsubscribe`;
+      const unsubscribeEndpoint = `https://api.sendpulse.com/addressbooks/${addressBookId}/emails/unsubscribe`;
       const sendpulseUnsubscribeResponse: AxiosResponse = await axios.post(
       unsubscribeEndpoint,
       { emails },

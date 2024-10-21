@@ -21,7 +21,6 @@ interface AddEmailsRequestBody {
 
 const CLIENT_ID = process.env.SENDPULSE_CLIENT_ID;
 const CLIENT_SECRET = process.env.SENDPULSE_CLIENT_SECRET;
-const MAILING_LIST = process.env.SENDPULSE_MAILING_LIST_ID;
 const API_AUTH_KEY = process.env.API_AUTH_KEY;
 
 
@@ -72,36 +71,91 @@ export async function POST(request: NextRequest) {
 
     const requestBody: AddEmailsRequestBody = await request.json();
 
-    // Extract data from the request body
-    const { emails } = requestBody;
+      // Extract data from the request body
+      const { emails, addressBookId } = requestBody;
 
-    if ( !emails || emails.length === 0) {
-      return NextResponse.json(
-        { message: 'addressBookId and emails are required in the request body' },
-        { status: 400 }
+      if ( !emails || emails.length === 0) {
+        return NextResponse.json(
+          { message: 'addressBookId and emails are required in the request body' },
+          { status: 400 }
+        );
+      }
+
+      console.log(emails);
+      
+
+    // check if the email is already in the address book
+    // https://api.sendpulse.com/addressbooks/{id}/emails/{email}
+
+    // const checkEmailResponse: AxiosResponse = await axios.get(
+    //   `https://api.sendpulse.com/addressbooks/${addressBookId}/emails/${emails[0].email}`,
+    //   {
+    //     headers: {
+    //       Authorization: `Bearer ${accessToken}`,
+    //       'Content-Type': 'application/json',
+    //     },
+    //   }
+    // );
+
+    // if (checkEmailResponse.data) {   
+    //   const newVariables = Object.entries(emails[0].variables || {}).map(([key, value]) => ({
+    //     "name": key,
+    //     "value": value as string
+    //   }));
+
+    //   const existingVariables = checkEmailResponse.data.variables.map((item:{name:string, value:string}) => ({
+    //     "name": item.name,
+    //     "value": item.value
+    //   }));
+
+    //   // const allVariables = [...existingVariables, ...newVariables];
+    //   const allVariables = [{name:"test", value:"test"}, {name:"test2", value:"test2"}];
+      
+        
+    //   console.log("all",allVariables);
+      
+      
+    //   // https://api.sendpulse.com/addressbooks/{addressBookId}/emails/variable
+    //   const updateEmailResponse: AxiosResponse = await axios.post(
+    //     `https://api.sendpulse.com/addressbooks/${addressBookId}/emails/variable`,
+    //     { "email": checkEmailResponse.data.email, "variables": allVariables},
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${accessToken}`,
+    //         'Content-Type': 'application/json',
+    //       },
+    //     }
+    //   );
+
+    //   console.log("update",updateEmailResponse.data);
+      
+    //   return NextResponse.json(updateEmailResponse.data, { status: updateEmailResponse.status });
+    // } else {
+      const endpoint = `https://api.sendpulse.com/addressbooks/${addressBookId}/emails`; // Replace with the actual endpoint
+
+      // Make the API call to SendPulse using the access token
+      const sendpulseResponse: AxiosResponse = await axios.post(
+        endpoint,
+        { emails },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
-    }
+  
+      
+      
+  
+      // Return the response from SendPulse to the client
+      return NextResponse.json(sendpulseResponse.data, { status: sendpulseResponse.status });
+    // }
+
+
 
     // Adjust the endpoint based on your requirements
-    const endpoint = `https://api.sendpulse.com/addressbooks/${MAILING_LIST}/emails`; // Replace with the actual endpoint
-
-    // Make the API call to SendPulse using the access token
-    const sendpulseResponse: AxiosResponse = await axios.post(
-      endpoint,
-      { emails },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    
-    
-
-    // Return the response from SendPulse to the client
-    return NextResponse.json(sendpulseResponse.data, { status: sendpulseResponse.status });
+  
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error(
