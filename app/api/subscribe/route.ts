@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    console.log(sendpulseResponse.data);
+    
     
 
     // Return the response from SendPulse to the client

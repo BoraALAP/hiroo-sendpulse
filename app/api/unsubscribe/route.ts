@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-console.log(sendpulseResponse.data.result, emails);
+
 
     if (sendpulseResponse.data.result) {
       const unsubscribeEndpoint = `https://api.sendpulse.com/addressbooks/${MAILING_LIST}/emails/unsubscribe`;
@@ -110,7 +110,7 @@ console.log(sendpulseResponse.data.result, emails);
           },
         }
       );
-      console.log(sendpulseUnsubscribeResponse.data, sendpulseUnsubscribeResponse.status);
+      
       return NextResponse.json(sendpulseUnsubscribeResponse.data, { status: sendpulseUnsubscribeResponse.status });
     }
     
