@@ -96,9 +96,26 @@ export async function POST(request: NextRequest) {
         },
       }
     );
+console.log(sendpulseResponse.data.result, emails);
+
+    if (sendpulseResponse.data.result) {
+      const unsubscribeEndpoint = `https://api.sendpulse.com/addressbooks/${MAILING_LIST}/emails/unsubscribe`;
+      const sendpulseUnsubscribeResponse: AxiosResponse = await axios.post(
+      unsubscribeEndpoint,
+      { emails },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log(sendpulseUnsubscribeResponse.data, sendpulseUnsubscribeResponse.status);
+      return NextResponse.json(sendpulseUnsubscribeResponse.data, { status: sendpulseUnsubscribeResponse.status });
+    }
+    
 
     // Return the response from SendPulse to the client
-    return NextResponse.json(sendpulseResponse.data, { status: sendpulseResponse.status });
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error(
