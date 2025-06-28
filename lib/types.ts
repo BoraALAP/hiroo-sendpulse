@@ -2,11 +2,12 @@
 
 export interface ContactData {
   email: string;
-  name?: string;
+  firstname?: string;
+  lastname?: string;
   phone?: string;
-  company?: string;
+  companyname?: string;
   message?: string;
-  number_of_employees?: string;
+  numberofemployees?: string;
   [key: string]: unknown;
 }
 
@@ -19,7 +20,7 @@ export interface WebflowFormData {
   phone?: string;
   messages?: string;
   numberofemployees?: string;
-  privacy_policy?: string | boolean;
+  privacypolicy?: string | boolean;
   marketing?: string | boolean;
   
   // Webflow payload structure

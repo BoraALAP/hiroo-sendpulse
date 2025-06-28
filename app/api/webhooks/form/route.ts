@@ -16,7 +16,7 @@ async function handleFormSubmission(data: WebflowFormData): Promise<ApiResponse>
   
   try {
     // Check privacy policy consent first
-    const privacyPolicy = formData['privacy_policy'];
+    const privacyPolicy = formData['privacypolicy'];
     if (privacyPolicy === 'false' || privacyPolicy === false) {
       console.log('❌ Privacy policy not accepted, not saving contact');
       return {
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     // Verify webhook signature
     if (!verifyWebflowSignature(rawBody, request)) {
       // In production, uncomment this to enforce signature verification:
-      // return Response.json({ error: "Forbidden" }, { status: 403 });
+      return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Parse and handle the webhook

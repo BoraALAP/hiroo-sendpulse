@@ -66,10 +66,12 @@ export class SendPulseHttpService {
     const targetAddressBookId = addressBookId || CONFIG.SENDPULSE.DEFAULT_ADDRESS_BOOK_ID;
     
     console.log(`📋 Adding contact to address book: ${targetAddressBookId}`);
+    const variables = this.formatContactVariables(contactData);
+    console.log("variables", variables);
 
     const emails = [{
       email: contactData.email,
-      variables: this.formatContactVariables(contactData)
+      variables: variables
     }];
 
     try {
@@ -91,7 +93,7 @@ export class SendPulseHttpService {
     const variables: Record<string, string> = {};
     
     Object.keys(contactData).forEach(key => {
-      if (key !== 'email' && contactData[key] != null) {
+      if (key !== 'email' && key !== 'privacypolicy' && key !== 'marketing' && contactData[key] != null) {
         variables[key] = String(contactData[key]);
       }
     });

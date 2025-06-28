@@ -83,22 +83,22 @@ export class FieldExtractor {
 
     // Add optional standard fields
     const firstName = this.extractFirstName(formData);
-    if (firstName) contactData.name = firstName;
+    if (firstName) contactData.firstname = firstName;
     
     const lastName = this.extractLastName(formData);
-    if (lastName) contactData.name = lastName;
+    if (lastName) contactData.lastname = lastName;
 
     const phone = this.extractPhone(formData);
     if (phone) contactData.phone = phone;
 
-    const company = this.extractCompany(formData);
-    if (company) contactData.company = company;
+    const companyname = this.extractCompany(formData);
+    if (companyname) contactData.companyname = companyname;
 
     const messages = this.extractMessages(formData);
     if (messages) contactData.message = messages;
 
     const numberOfEmployees = this.extractNumberOfEmployees(formData);
-    if (numberOfEmployees) contactData.number_of_employees = numberOfEmployees;
+    if (numberOfEmployees) contactData.numberofemployees = numberOfEmployees;
 
     // Add all form fields as custom variables (including the extracted ones for completeness)
     Object.keys(formData).forEach(key => {
