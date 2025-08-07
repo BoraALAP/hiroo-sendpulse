@@ -11,6 +11,7 @@ export const FORM_TO_ADDRESSBOOK_MAPPING: Record<string, AddressBookMapping> = {
   '66d84d72633d424869c060e9': { title: 'Contact Us', id: '963390' },
   '66d84d72633d424869c060df': { title: 'Demo Day', id: '963388' },
   '66d84d72633d424869c060d2': { title: 'Pricing', id: '963392' },
+  '66d84d72633d424869c094d2': { title: 'HiroMind Request', id: '1077494' },
 };
 
 const DEFAULT_MAPPING: AddressBookMapping = { 
