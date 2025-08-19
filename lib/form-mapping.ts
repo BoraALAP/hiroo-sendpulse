@@ -12,7 +12,7 @@ export const FORM_TO_ADDRESSBOOK_MAPPING: Record<string, AddressBookMapping> = {
   '66d84d72633d424869c060df': { title: 'Demo Day', id: '963388' },
   '66d84d72633d424869c060d2': { title: 'Pricing', id: '963392' },
   '68950f3386add23406241630': { title: 'HiroMind Request', id: '1077494' },
-  '8a47fd616ad97a607ec30f7': { title: 'Webinar', id: '1080332' },
+  '68a47fd616ad97a607ec30f7': { title: 'Webinar', id: '1080332' },
 };
 
 const DEFAULT_MAPPING: AddressBookMapping = { 
