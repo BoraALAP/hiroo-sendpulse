@@ -7,12 +7,13 @@ export const CONFIG = {
     API_USER_ID: process.env.SENDPULSE_API_USER_ID,
     API_SECRET: process.env.SENDPULSE_API_SECRET,
     DEFAULT_ADDRESS_BOOK_ID: '961879',
+    MARKETING_MAILING_LIST_ID: '1080332',
     TOKEN_SAFETY_MARGIN: 300, // 5 minutes in seconds
   },
 
   // Webflow webhook configuration
   WEBFLOW: {
-    WEBHOOK_SECRET: process.env.WEBFLOW_WEBHOOK_SECRET_LOCAL,
+    WEBHOOK_SECRET: process.env.WEBFLOW_WEBHOOK_SECRET,
   },
 
   // API authentication (for subscribe/unsubscribe endpoints)

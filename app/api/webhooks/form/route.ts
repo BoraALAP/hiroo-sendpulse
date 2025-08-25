@@ -35,32 +35,31 @@ async function handleFormSubmission(data: WebflowFormData): Promise<ApiResponse>
     });
     console.log('📋 All fields being sent to SendPulse:', contactData);
 
-    // Check marketing consent
+    // Check marketing consent and target lists
     const marketingConsent = formData['marketing'];
     const addressBookId = formId ? getAddressBookId(formId).id : undefined;
-    
-    if (marketingConsent === 'false' || marketingConsent === false) {
-      console.log('📧 Marketing consent declined, unsubscribing contact');
-      
-      // Unsubscribe contact directly
-      const result = await sendPulseHttpService.unsubscribeContact(contactData, addressBookId);
-      
-      return {
-        success: true,
-        message: 'Contact unsubscribed from marketing communications',
-        data: result
-      };
+
+    // Always add to the primary address book
+    const primaryResult = await sendPulseHttpService.addContact(contactData, addressBookId);
+
+    // If consent is true, also add to the marketing mailing list
+    let marketingResult: unknown | undefined;
+    const hasConsent = marketingConsent === true || marketingConsent === 'true';
+    if (hasConsent && CONFIG.SENDPULSE.MARKETING_MAILING_LIST_ID) {
+      marketingResult = await sendPulseHttpService.addContact(
+        contactData,
+        CONFIG.SENDPULSE.MARKETING_MAILING_LIST_ID
+      );
     }
-    
-    // Add contact to SendPulse for marketing
-    const result = await sendPulseHttpService.addContact(contactData, addressBookId);
-    
-    console.log('✅ Contact added to SendPulse successfully');
-    
+
+    console.log('✅ Contact processed successfully', { addedToPrimary: true, addedToMarketing: Boolean(marketingResult) });
+
     return {
       success: true,
-      message: 'Contact subscribed successfully',
-      data: result
+      message: hasConsent
+        ? 'Contact added to primary and marketing lists'
+        : 'Contact added to primary list only',
+      data: { primaryResult, marketingResult }
     };
 
   } catch (error) {

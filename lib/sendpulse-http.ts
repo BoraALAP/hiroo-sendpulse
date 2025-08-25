@@ -5,17 +5,37 @@ import { CONFIG, validateConfig } from './config';
 export class SendPulseHttpService {
   private token: string | null = null;
   private tokenExpiry: number = 0;
+  private tokenPromise: Promise<string> | null = null;
 
   constructor() {
     validateConfig();
   }
 
   private async getAccessToken(): Promise<string> {
+    // If we have a valid token, return it
     if (this.token && Date.now() < this.tokenExpiry) {
       return this.token;
     }
 
+    // If we're already getting a token, wait for that promise
+    if (this.tokenPromise) {
+      return await this.tokenPromise;
+    }
+
+    // Start getting a new token
+    this.tokenPromise = this.fetchNewToken();
     try {
+      const token = await this.tokenPromise;
+      return token;
+    } finally {
+      this.tokenPromise = null;
+    }
+  }
+
+  private async fetchNewToken(): Promise<string> {
+    try {
+      console.log('🔄 Fetching new SendPulse token...');
+      
       const response = await axios.post(`${CONFIG.SENDPULSE.BASE_URL}/oauth/access_token`, {
         grant_type: 'client_credentials',
         client_id: CONFIG.SENDPULSE.API_USER_ID,
@@ -30,32 +50,54 @@ export class SendPulseHttpService {
       return this.token;
     } catch (error) {
       console.error('❌ SendPulse authentication failed:', error);
+      // Clear the token on error
+      this.token = null;
+      this.tokenExpiry = 0;
       throw new Error('Failed to authenticate with SendPulse API');
     }
   }
 
   private async makeRequest(method: string, endpoint: string, data?: unknown): Promise<unknown> {
-    const token = await this.getAccessToken();
+    let token = await this.getAccessToken();
+    let retryCount = 0;
+    const maxRetries = 1;
     
-    try {
-      const response = await axios({
-        method,
-        url: `${CONFIG.SENDPULSE.BASE_URL}${endpoint}`,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        data
-      });
+    while (retryCount <= maxRetries) {
+      try {
+        const response = await axios({
+          method,
+          url: `${CONFIG.SENDPULSE.BASE_URL}${endpoint}`,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          data
+        });
 
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const message = error.response?.data?.message || error.message;
-        throw new Error(`SendPulse API error: ${message}`);
+        return response.data;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const message = error.response?.data?.message || error.message;
+          const status = error.response?.status;
+          
+          // If we get an unauthorized error and haven't retried yet, try with a fresh token
+          if ((status === 401 || message.includes('Unauthorized')) && retryCount < maxRetries) {
+            console.log('🔄 Token appears invalid, fetching fresh token...');
+            // Clear the current token and get a fresh one
+            this.token = null;
+            this.tokenExpiry = 0;
+            token = await this.getAccessToken();
+            retryCount++;
+            continue;
+          }
+          
+          throw new Error(`SendPulse API error: ${message}`);
+        }
+        throw error;
       }
-      throw error;
     }
+    
+    throw new Error('Max retries exceeded');
   }
 
   async getAddressBooks(): Promise<unknown> {
