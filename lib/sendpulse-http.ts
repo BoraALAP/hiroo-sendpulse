@@ -120,14 +120,25 @@ export class SendPulseHttpService {
       return await this.makeRequest('POST', `/addressbooks/${targetAddressBookId}/emails`, { emails });
     } catch (error) {
       // Log the actual error details
-      console.error(`❌ Address book ${targetAddressBookId} error:`, error instanceof Error ? error.message : error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Address book ${targetAddressBookId} error:`, message);
       
-      // Fallback to default address book if the specified one fails
-      if (targetAddressBookId !== CONFIG.SENDPULSE.DEFAULT_ADDRESS_BOOK_ID) {
-        console.warn(`⚠️ Address book ${targetAddressBookId} failed, using default`);
+      // Treat duplicate requests as success (no-op)
+      if (message.includes('Duplicate request')) {
+        console.warn(`ℹ️ Duplicate request for ${targetAddressBookId}, treating as success`);
+        return { duplicate: true };
+      }
+      
+      // Only fallback to default address book if the error indicates missing book
+      if (
+        targetAddressBookId !== CONFIG.SENDPULSE.DEFAULT_ADDRESS_BOOK_ID &&
+        (message.includes('Book not found') || message.includes('Address book not found'))
+      ) {
+        console.warn(`⚠️ Address book ${targetAddressBookId} not found, using default`);
         return await this.makeRequest('POST', `/addressbooks/${CONFIG.SENDPULSE.DEFAULT_ADDRESS_BOOK_ID}/emails`, { emails });
       }
-      throw error;
+
+      throw error instanceof Error ? error : new Error(message);
     }
   }
 

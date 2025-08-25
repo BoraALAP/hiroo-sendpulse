@@ -35,32 +35,39 @@ async function handleFormSubmission(data: WebflowFormData): Promise<ApiResponse>
     });
     console.log('📋 All fields being sent to SendPulse:', contactData);
 
-    // Check marketing consent and target lists
-    const marketingConsent = formData['marketing'];
-    const addressBookId = formId ? getAddressBookId(formId).id : undefined;
+      // Check marketing consent and target lists
+  const marketingConsent = formData['marketing'];
+  const addressBookId = formId ? getAddressBookId(formId).id : undefined;
 
-    // Always add to the primary address book
-    const primaryResult = await sendPulseHttpService.addContact(contactData, addressBookId);
+  // Always add to the primary address book
+  const primaryResult = await sendPulseHttpService.addContact(contactData, addressBookId);
 
-    // If consent is true, also add to the marketing mailing list
-    let marketingResult: unknown | undefined;
-    const hasConsent = marketingConsent === true || marketingConsent === 'true';
-    if (hasConsent && CONFIG.SENDPULSE.MARKETING_MAILING_LIST_ID) {
+  // If consent is true, also add to the marketing mailing list
+  let marketingResult: unknown | undefined;
+  const hasConsent = marketingConsent === true || marketingConsent === 'true';
+  const primaryId = addressBookId || CONFIG.SENDPULSE.DEFAULT_ADDRESS_BOOK_ID;
+  const marketingId = CONFIG.SENDPULSE.MARKETING_MAILING_LIST_ID;
+
+  if (hasConsent && marketingId && marketingId !== primaryId) {
+    try {
       marketingResult = await sendPulseHttpService.addContact(
         contactData,
-        CONFIG.SENDPULSE.MARKETING_MAILING_LIST_ID
+        marketingId
       );
+    } catch (e) {
+      console.warn('⚠️ Failed to add to marketing list, continuing:', e instanceof Error ? e.message : e);
     }
+  }
 
-    console.log('✅ Contact processed successfully', { addedToPrimary: true, addedToMarketing: Boolean(marketingResult) });
+  console.log('✅ Contact processed successfully', { addedToPrimary: true, addedToMarketing: Boolean(marketingResult) });
 
-    return {
-      success: true,
-      message: hasConsent
-        ? 'Contact added to primary and marketing lists'
-        : 'Contact added to primary list only',
-      data: { primaryResult, marketingResult }
-    };
+  return {
+    success: true,
+    message: hasConsent && marketingId && marketingId !== primaryId
+      ? 'Contact added to primary and marketing lists'
+      : 'Contact added to primary list only',
+    data: { primaryResult, marketingResult }
+  };
 
   } catch (error) {
     console.error('❌ Form submission error:', error);
@@ -98,7 +105,8 @@ function verifyWebflowSignature(rawBody: string, request: NextRequest): boolean 
   
   const signatureData = timestamp ? `${timestamp}:${rawBody}` : rawBody;
   const expectedSig = crypto.createHmac("sha256", secret).update(signatureData).digest("hex");
-  
+  console.log("expectedSig", expectedSig);
+  console.log("incomingSig", incomingSig);
   const isValid = incomingSig === expectedSig;
   console.log(isValid ? "✅ Signature verified" : "❌ Invalid signature");
   
